@@ -7,7 +7,6 @@ import '../lib/simplify.dart';
 import '../lib/classes.dart';
 
 void main() async {
-
   /*
   var data1 = jsonDecode(await File('data/single-geom.json').readAsString());
   var data2 = jsonDecode(await File('data/single-geom-tiles.json').readAsString());
@@ -16,19 +15,18 @@ void main() async {
   });
   */
 
-
   var data3 = jsonDecode(await File('data/us-states.json').readAsString());
-  var data4 = jsonDecode(await File('data/us-states-tiles.json').readAsString());
-  var partialus = jsonDecode(await File('data/us-states-partial.json').readAsString());
+  var data4 =
+      jsonDecode(await File('data/us-states-tiles.json').readAsString());
+  var partialus =
+      jsonDecode(await File('data/us-states-partial.json').readAsString());
   var index = GeoJSONVT(data3, {'indexMaxZoom': 7, 'indexMaxPoints': 200});
-
-
 
   ///List t1 = index.getTile(0,0,0)!.features;
   ///print("${t1.length}");
 
   test('US States', () {
-    expect(genTiles(data3, {'indexMaxZoom': 7, 'indexMaxPoints': 200} ), data4  );
+    expect(genTiles(data3, {'indexMaxZoom': 7, 'indexMaxPoints': 200}), data4);
   });
 
   //exit(2);
@@ -67,7 +65,6 @@ void main() async {
   ///test('us states', () {
   ///  expect(genTiles(data3, {'indexMaxZoom': 7, 'indexMaxPoints': 200}), data4  );
   ///});
-
 
   //var t = genTiles(data3, {'indexMaxZoom': 7, 'indexMaxPoints': 200});
   //print("$t");
@@ -132,21 +129,19 @@ void main() async {
 }
 
 Map genTiles(data, options) {
-  final index = GeoJSONVT(data, extend({
-    'indexMaxZoom': 0,
-    'indexMaxPoints': 10000
-  }, options));
+  final index = GeoJSONVT(
+      data, extend({'indexMaxZoom': 0, 'indexMaxPoints': 10000}, options));
 
   final output = {};
   //print("${index.tiles}");
 
   var tiles = index.tiles;
   tiles.forEach((id, idx) {
-      final tile = tiles[id];
-      final z = tile.z;
-      var i = "z$z-${tile.x}-${tile.y}";
-      //print("\n$i ${index.runtimeType}");
-      output[i] = index.getTile(z, tile.x, tile.y)!.features;
+    final tile = tiles[id];
+    final z = tile.z;
+    var i = "z$z-${tile.x}-${tile.y}";
+    //print("\n$i ${index.runtimeType}");
+    output[i] = index.getTile(z, tile.x, tile.y)!.features;
   });
 
   return output;

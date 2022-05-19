@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as dartui;
 
-
 import 'package:flutter/material.dart';
 //import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -23,13 +22,17 @@ class PositionInfo {
   double height;
   String coordsKey;
   double scale;
-  PositionInfo({required this.point, required this.width, required this.height, required this.coordsKey, required this.scale});
+  PositionInfo(
+      {required this.point,
+      required this.width,
+      required this.height,
+      required this.coordsKey,
+      required this.scale});
 
   @override
   String toString() {
     return 'point:$point width:$width height:$height coordsKey:$coordsKey scale:$scale';
   }
-
 }
 
 class Coords<T extends num> extends CustomPoint<T> {
@@ -53,7 +56,6 @@ class Coords<T extends num> extends CustomPoint<T> {
 }
 
 class TileState {
-
   final Map<double, Level> _levels = {};
   Level _level = Level();
   final mapState;
@@ -63,6 +65,7 @@ class TileState {
 
   Tuple2<double, double>? _wrapX;
   Tuple2<double, double>? _wrapY;
+
   ///late Bounds _globalTileRange;
 
   TileState(this.mapState, this.tileSize) {
@@ -84,8 +87,8 @@ class TileState {
     return Bounds(pixelCenter - halfSize, pixelCenter + halfSize);
   }
 
-  Bounds pxBoundsToTileRange(Bounds bounds,[tileSize = 256]) {
-    final tsPoint = CustomPoint(tileSize,tileSize);
+  Bounds pxBoundsToTileRange(Bounds bounds, [tileSize = 256]) {
+    final tsPoint = CustomPoint(tileSize, tileSize);
     return Bounds(
       bounds.min.unscaleBy(tsPoint).floor(),
       bounds.max.unscaleBy(tsPoint).ceil() - const CustomPoint(1, 1),
@@ -100,14 +103,14 @@ class TileState {
 
   Bounds getBounds() => getTiledPixelBounds(mapState);
 
-  Bounds getTileRange() => pxBoundsToTileRange(getBounds(),256);
+  Bounds getTileRange() => pxBoundsToTileRange(getBounds(), 256);
 
   void _setView(LatLng center, double zoom) {
     var tileZoom = zoom.roundToDouble();
     //if (_tileZoom != tileZoom) {
-      _tileZoom = tileZoom;
-      //_updateLevels();
-      _resetGrid();
+    _tileZoom = tileZoom;
+    //_updateLevels();
+    _resetGrid();
     //}
 
     _updateLevels();
@@ -130,10 +133,10 @@ class TileState {
     _wrapX = crs.wrapLng;
     if (_wrapX != null) {
       var first = (map.project(LatLng(0.0, crs.wrapLng!.item1), tileZoom).x /
-          tileSize.x)
+              tileSize.x)
           .floorToDouble();
       var second = (map.project(LatLng(0.0, crs.wrapLng!.item2), tileZoom).x /
-          tileSize.y)
+              tileSize.y)
           .ceilToDouble();
       _wrapX = Tuple2(first, second);
     }
@@ -141,16 +144,14 @@ class TileState {
     _wrapY = crs.wrapLat;
     if (_wrapY != null) {
       var first = (map.project(LatLng(crs.wrapLat!.item1, 0.0), tileZoom).y /
-          tileSize.x)
+              tileSize.x)
           .floorToDouble();
       var second = (map.project(LatLng(crs.wrapLat!.item2, 0.0), tileZoom).y /
-          tileSize.y)
+              tileSize.y)
           .ceilToDouble();
       _wrapY = Tuple2(first, second);
     }
   }
-
-
 
   void _setZoomTransforms(LatLng center, double zoom) {
     for (var i in _levels.keys) {
@@ -181,8 +182,9 @@ class TileState {
     for (var z in _levels.keys) {
       //print("Checking level $z ${_levels[z]}");
       var levelZ = _levels[z];
-      if(levelZ != null) {
-        if (z == zoom) { /// recheck here.....
+      if (levelZ != null) {
+        if (z == zoom) {
+          /// recheck here.....
           var levelZi = _levels[z];
           if (levelZi != null) {
             levelZi.zIndex = maxZoom = (zoom - z).abs();
@@ -195,34 +197,30 @@ class TileState {
 
     var max = maxZoom + 2; // arbitrary, was originally for overzoom
 
-    for(var tempZoom in [for(var i=1.0; i<max; i+=1.0) i]) {
-
+    for (var tempZoom in [for (var i = 1.0; i < max; i += 1.0) i]) {
       //print("checking $tempZoom");
 
       var level = _levels[tempZoom];
       var map = mapState;
 
       if (level == null) {
-
         //print("Level $tempZoom is null....");
 
         level = _levels[tempZoom.toDouble()] = Level();
         level.zIndex = maxZoom;
-        var newOrigin = map.project(map.unproject(map.getPixelOrigin()), tempZoom);
+        var newOrigin =
+            map.project(map.unproject(map.getPixelOrigin()), tempZoom);
         level.origin = newOrigin;
         level.zoom = tempZoom;
         //print("level is now ${level.origin}");
         _setZoomTransform(level, map.center, map.zoom);
       }
-
     }
 
     //print("3");
 
     var levelZoom = _levels[zoom];
-    if(levelZoom != null)
-      _level = levelZoom;
-
+    if (levelZoom != null) _level = levelZoom;
   }
 
 /*
@@ -242,8 +240,8 @@ class TileState {
 
 
  */
-  PositionInfo getTilePositionInfo( double z, double x, double y ) {
-    var coords = Coords(x,y);
+  PositionInfo getTilePositionInfo(double z, double x, double y) {
+    var coords = Coords(x, y);
     coords.z = z.floorToDouble();
 
     var tilePos = _getTilePos(coords, tileSize);
@@ -256,10 +254,14 @@ class TileState {
     var coordsKey = tileCoordsToKey(coords);
 
     ///return [pos, scale, coordsKey];
-    return PositionInfo(point: pos, width: width, height: height, coordsKey: coordsKey, scale: width / tileSize.x );
+    return PositionInfo(
+        point: pos,
+        width: width,
+        height: height,
+        coordsKey: coordsKey,
+        scale: width / tileSize.x);
 
     //return tilePositionInfo;
-
   }
 
   String tileCoordsToKey(Coords coords) {
@@ -276,7 +278,6 @@ class TileState {
 }
 
 class VectorPainter extends CustomPainter with ChangeNotifier {
-
   //ValueNotifier<int> notifier;
   final Stream<Null>? stream;
   GeoJSONVT? index;
@@ -290,7 +291,7 @@ class VectorPainter extends CustomPainter with ChangeNotifier {
     ..strokeCap = StrokeCap.round
     ..isAntiAlias = false;
 
-  VectorPainter({ required this.mapState, this.index, this.stream });
+  VectorPainter({required this.mapState, this.index, this.stream});
 
   //void update() {
   //  notifyListeners();
@@ -298,7 +299,6 @@ class VectorPainter extends CustomPainter with ChangeNotifier {
 
   @override
   void paint(Canvas canvas, Size size) {
-
     Bounds _tileRange;
     final List featuresInView = [];
 
@@ -306,7 +306,6 @@ class VectorPainter extends CustomPainter with ChangeNotifier {
     //print("ORIGIN IS $origin!!!!!!!!!!!");
 
     tileState = TileState(mapState, CustomPoint(256.0, 256.0));
-
 
     //var tilePos = Coords()
 
@@ -326,43 +325,42 @@ class VectorPainter extends CustomPainter with ChangeNotifier {
 
         final List featuresInView = [];
 
-        if(tile != null && tile.features.isNotEmpty) {
+        if (tile != null && tile.features.isNotEmpty) {
           featuresInView.addAll(tile.features);
         }
 
-        var pos = tileState!.getTilePositionInfo(tileState!.getTileZoom(), i.toDouble(), j.toDouble());
+        var pos = tileState!.getTilePositionInfo(
+            tileState!.getTileZoom(), i.toDouble(), j.toDouble());
         //print("POS IS $pos, zoom is ${mapState.zoom}");
 
         Matrix4 matrix = Matrix4.identity();
-        if(pos != null) {
+        if (pos != null) {
           matrix
             ..translate(pos.point.x.toDouble(), pos.point.y.toDouble())
             ..scale(pos.scale);
         }
         canvas.save();
         canvas.transform(matrix.storage);
-        var myRect = Offset(0,0) & Size(256.0,256.0);
+        var myRect = Offset(0, 0) & Size(256.0, 256.0);
         canvas.clipRect(myRect);
 
         var p = dartui.Path();
 
         for (var feature in featuresInView) {
-          if( feature['type'] == 3) {
+          if (feature['type'] == 3) {
             //var g = feature['geometry'];
-            for( var item in feature['geometry'] ) {
-
-             // print("ITEM IS $item");
+            for (var item in feature['geometry']) {
+              // print("ITEM IS $item");
               p.moveTo(item[0][0].toDouble(), item[0][1].toDouble());
               for (var c = 1; c < item.length; c++) {
                 p.lineTo(item[c][0].toDouble(), item[c][1].toDouble());
-               // print("$c ${item[c]}");
+                // print("$c ${item[c]}");
               }
             }
           }
         }
         //print("drawing path $p");
         canvas.drawPath(p, defaultStyle);
-
 
         canvas.restore();
 
@@ -392,19 +390,18 @@ class SliceLayerWidget extends StatefulWidget {
   //final SliceLayerOptions options;
   final GeoJSONVT? index;
 
-  SliceLayerWidget({Key? key, this.index}) : super(key: key); // : super(key: key);
+  SliceLayerWidget({Key? key, this.index})
+      : super(key: key); // : super(key: key);
 
   @override
   _SliceLayerWidgetState createState() => _SliceLayerWidgetState();
 }
 
 class _SliceLayerWidgetState extends State<SliceLayerWidget> {
-
   //ValueNotifier<int> notifier = ValueNotifier(0);
 
   @override
   Widget build(BuildContext context) {
-
     //print("buildxxx ${notifier.value}");
 
     //print("SLICER BUILD!");
@@ -414,35 +411,30 @@ class _SliceLayerWidgetState extends State<SliceLayerWidget> {
 
     var width = MediaQuery.of(context).size.width * 2.0;
     var height = MediaQuery.of(context).size.height;
-    var dimensions = Offset(width,height);
-
-
+    var dimensions = Offset(width, height);
 
     return StreamBuilder<void>(
-      stream: mapState.onMoved,
-      builder: (BuildContext context, _) {
+        stream: mapState.onMoved,
+        builder: (BuildContext context, _) {
+          var box = SizedBox(
+              width: width * 1.25,
 
-        var box = SizedBox(
-            width: width*1.25, /// calculate this properly depending on rotation and mobile orientation
-            height: height*1.25,
-            child: RepaintBoundary (
-                child: CustomPaint(
-                    isComplex: true, //Tells flutter to cache the painter.
-                    painter: VectorPainter(mapState: mapState, index: widget.index, stream: mapState.onMoved)
-                )
-            )
-        );
-        return box;
-      }
-    );
+              /// calculate this properly depending on rotation and mobile orientation
+              height: height * 1.25,
+              child: RepaintBoundary(
+                  child: CustomPaint(
+                      isComplex: true, //Tells flutter to cache the painter.
+                      painter: VectorPainter(
+                          mapState: mapState,
+                          index: widget.index,
+                          stream: mapState.onMoved))));
+          return box;
+        });
 
     //return box;
     //return Text("hi");
   }
 }
-
-
-
 
 class MapControllerPage extends StatefulWidget {
   static const String route = 'map_controller';
@@ -501,26 +493,27 @@ class MapControllerPageState extends State<MapControllerPage> {
     ];
 
     WidgetsBinding.instance!.addPostFrameCallback((_) async {
-      var json = jsonDecode(await rootBundle.loadString('assets/us-states.json'));
+      var json =
+          jsonDecode(await rootBundle.loadString('assets/us-states.json'));
       print("JSON IS $json");
 
       geoJson = GeoJSONVT(json, {
-        'debug' : 0,
-        'buffer' : 64,
+        'debug': 0,
+        'buffer': 64,
         'indexMaxZoom': 20,
         'indexMaxPoints': 10000000,
-        'tolerance' : 0,
-        'extent': 256.0});
+        'tolerance': 0,
+        'extent': 256.0
+      });
       print("VT DONE $geoJson");
-      print("gt ${geoJson?.getTile(0,0,0)}");
-      print("gt2 ${geoJson?.getTile(5,9,15)}");
-      setState(() { });
+      print("gt ${geoJson?.getTile(0, 0, 0)}");
+      print("gt2 ${geoJson?.getTile(5, 9, 15)}");
+      setState(() {});
     });
   }
 
   @override
   Widget build(BuildContext context) {
-
     print("Build geojson $geoJson");
     //print("${mapController.bounds}");
     /*
@@ -647,27 +640,23 @@ class MapControllerPageState extends State<MapControllerPage> {
             ),
             Flexible(
               child: FlutterMap(
-
                 mapController: mapController,
                 options: MapOptions(
-                    onTap: (tapPos, LatLng latLng) {
-                      print("TAP $tapPos    $latLng");
-                      markers.add(
-                        Marker(
-                          point: latLng,
-                          builder: (ctx) => Icon(Icons.favorite),
-
-                        ),
-                      );
-                      setState(() {
-
-                      });
-                    },
+                  onTap: (tapPos, LatLng latLng) {
+                    print("TAP $tapPos    $latLng");
+                    markers.add(
+                      Marker(
+                        point: latLng,
+                        builder: (ctx) => Icon(Icons.favorite),
+                      ),
+                    );
+                    setState(() {});
+                  },
                   center: LatLng(51.5, -0.09),
                   zoom: 5.0,
                   maxZoom: 15.0,
                   minZoom: 0.0,
-                    //interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate
+                  //interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate
                 ),
                 layers: [
                   TileLayerOptions(
@@ -678,9 +667,7 @@ class MapControllerPageState extends State<MapControllerPage> {
                   //LayerOptions(),
                   //SliceLayer(options: SliceLayerOptions(), index: geoJson,)
                 ],
-                nonRotatedChildren: <Widget>[
-                  SliceLayerWidget(index: geoJson)
-                ],
+                nonRotatedChildren: <Widget>[SliceLayerWidget(index: geoJson)],
               ),
             ),
           ],

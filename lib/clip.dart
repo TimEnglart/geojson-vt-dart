@@ -8,7 +8,8 @@ List clip(features, scale, k1, k2, axis, minAll, maxAll, options) {
 
   bool lineMetrics = options.lineMetrics != null ? options.lineMetrics : false;
 
-  if (minAll >= k1 && maxAll < k2) return features; // trivial accept
+  if (minAll >= k1 && maxAll < k2)
+    return features; // trivial accept
   else if (maxAll < k1 || minAll >= k2) return []; // trivial reject
 
   var clipped = [];
@@ -20,10 +21,12 @@ List clip(features, scale, k1, k2, axis, minAll, maxAll, options) {
     final min = axis == 0 ? feature.minX : feature.minY;
     final max = axis == 0 ? feature.maxX : feature.maxY;
 
-    if (min >= k1 && max < k2) { // trivial accept
+    if (min >= k1 && max < k2) {
+      // trivial accept
       clipped.add(feature);
       continue;
-    } else if (max < k1 || min >= k2) { // trivial reject
+    } else if (max < k1 || min >= k2) {
+      // trivial reject
       continue;
     }
 
@@ -31,18 +34,13 @@ List clip(features, scale, k1, k2, axis, minAll, maxAll, options) {
 
     if (type == FeatureType.Point || type == FeatureType.MultiPoint) {
       clipPoints(geometry, newGeometry, k1, k2, axis);
-
     } else if (type == FeatureType.LineString) {
       clipLine(geometry, newGeometry, k1, k2, axis, false, lineMetrics);
-
     } else if (type == FeatureType.MultiLineString) {
       clipLines(geometry, newGeometry, k1, k2, axis, false);
-
     } else if (type == FeatureType.Polygon) {
       clipLines(geometry, newGeometry, k1, k2, axis, true);
-
     } else if (type == FeatureType.MultiPolygon) {
-
       for (var polygon in geometry) {
         List newPolygon = [];
 
@@ -64,7 +62,8 @@ List clip(features, scale, k1, k2, axis, minAll, maxAll, options) {
         continue;
       }
 
-      if (type == FeatureType.LineString || type == FeatureType.MultiLineString) {
+      if (type == FeatureType.LineString ||
+          type == FeatureType.MultiLineString) {
         if (newGeometry.length == 1) {
           type = FeatureType.LineString;
           newGeometry = newGeometry[0];
@@ -73,7 +72,9 @@ List clip(features, scale, k1, k2, axis, minAll, maxAll, options) {
         }
       }
       if (type == FeatureType.Point || type == FeatureType.MultiPoint) {
-        type = (newGeometry.length == 3) ? FeatureType.Point : FeatureType.MultiPoint;
+        type = (newGeometry.length == 3)
+            ? FeatureType.Point
+            : FeatureType.MultiPoint;
       }
 
       clipped.add(createFeature(feature.id, type, newGeometry, feature.tags));
@@ -89,7 +90,6 @@ void clipLines(geom, newGeom, k1, k2, axis, isPolygon) {
 }
 
 void clipLine(List geom, newGeom, k1, k2, axis, isPolygon, trackMetrics) {
-
   List slice = newSlice(geom);
   final intersect = axis == 0 ? intersectX : intersectY;
   num len = geom.start;
@@ -106,7 +106,8 @@ void clipLine(List geom, newGeom, k1, k2, axis, isPolygon, trackMetrics) {
 
     bool exited = false;
 
-    if (trackMetrics) segLen = math.sqrt(math.pow(ax - bx, 2) + math.pow(ay - by, 2));
+    if (trackMetrics)
+      segLen = math.sqrt(math.pow(ax - bx, 2) + math.pow(ay - by, 2));
 
     if (a < k1) {
       // ---|-->  | (line enters the clip region from the left)
@@ -154,7 +155,9 @@ void clipLine(List geom, newGeom, k1, k2, axis, isPolygon, trackMetrics) {
   // close the polygon if its endpoints are not the same after clipping
   last = slice.length - 3;
 
-  if (isPolygon && last >= 3 && (slice[last] != slice[0] || slice[last + 1] != slice[1])) {
+  if (isPolygon &&
+      last >= 3 &&
+      (slice[last] != slice[0] || slice[last + 1] != slice[1])) {
     addPoint(slice, slice[0], slice[1], slice[2]);
   }
 
@@ -162,7 +165,6 @@ void clipLine(List geom, newGeom, k1, k2, axis, isPolygon, trackMetrics) {
   if (slice.length > 0) {
     newGeom.add(slice);
   }
-
 }
 
 void clipPoints(geom, newGeom, k1, k2, axis) {
