@@ -1,22 +1,18 @@
 import 'dart:math' as math;
-import 'dart:io';
 import 'classes.dart';
-import 'clip.dart';
 import 'simplify.dart';
 import 'feature.dart';
 
-List convert( Map data, options ) {
-  List features = [];
+List<Feature> convert(Map data, options) {
+  List<Feature> features = [];
 
-  if(data['type'] == 'FeatureCollection') {
+  if (data['type'] == 'FeatureCollection') {
     for (int i = 0; i < data['features'].length; i++) {
       convertFeature(features, data['features'][i], options, i);
     }
   } else if (data['type'] == 'Feature') {
     convertFeature(features, data, options, null);
-
   } else {
-
     // single geometry or a geometry collection
     convertFeature(features, {'geometry': data}, options, null);
   }
@@ -24,8 +20,7 @@ List convert( Map data, options ) {
   return features;
 }
 
-void convertFeature( List featureCollection, geojson, options, index ) {
-
+void convertFeature(List featureCollection, geojson, options, index) {
   if (geojson['geometry'] == null || geojson['geometry'].isEmpty) return;
   var type = geojson['geometry']['type'];
 
@@ -33,7 +28,8 @@ void convertFeature( List featureCollection, geojson, options, index ) {
 
   var coords = geojson['geometry']['coordinates'];
 
-  var tolerance = math.pow(options.tolerance / ((1 << options.maxZoom) * options.extent), 2);
+  var tolerance = math.pow(
+      options.tolerance / ((1 << options.maxZoom) * options.extent), 2);
 
   List geometry = [];
   var id = geojson['id'];
@@ -41,20 +37,17 @@ void convertFeature( List featureCollection, geojson, options, index ) {
   if (options.promoteId != null) {
     id = geojson['properties'][options.promoteId];
   } else if (options.generateId) {
-    id = index == null ? 0 : index;
+    id = index ?? 0;
   }
 
   if (featureType == FeatureType.Point) {
     convertPoint(coords, geometry);
-
   } else if (featureType == FeatureType.MultiPoint) {
     for (var p in coords) {
       convertPoint(p, geometry);
     }
-
   } else if (featureType == FeatureType.LineString) {
     convertLine(coords, geometry, tolerance, false);
-
   } else if (featureType == FeatureType.MultiLineString) {
     if (options.lineMetrics != null && options.lineMetrics) {
       // explode into linestrings to be able to track metrics
@@ -62,38 +55,40 @@ void convertFeature( List featureCollection, geojson, options, index ) {
         geometry = [];
         convertLine(line, geometry, tolerance, false);
 
-        featureCollection.add(createFeature(id, FeatureType.LineString, geometry, geojson['properties']));
+        featureCollection.add(createFeature(
+            id, FeatureType.LineString, geometry, geojson['properties']));
       }
       return;
     } else {
       convertLines(coords, geometry, tolerance, false);
     }
-
-  } else if (featureType ==  FeatureType.Polygon) {
+  } else if (featureType == FeatureType.Polygon) {
     convertLines(coords, geometry, tolerance, true);
-
-  } else if (featureType ==  FeatureType.MultiPolygon) {
+  } else if (featureType == FeatureType.MultiPolygon) {
     for (var polygon in coords) {
       var newPolygon = [];
       convertLines(polygon, newPolygon, tolerance, true);
       geometry.add(newPolygon);
     }
-
   } else if (featureType == FeatureType.GeometryCollection) {
     for (final singleGeometry in geojson['geometry']['geometries']) {
-      convertFeature(featureCollection, {
-        'id': id, // to do
-        'geometry': singleGeometry,
-        'properties': geojson['properties']
-      }, options, index);
-
+      convertFeature(
+          featureCollection,
+          {
+            'id': id, // to do
+            'geometry': singleGeometry,
+            'properties': geojson['properties']
+          },
+          options,
+          index);
     }
     return;
   } else {
     print('Input data is not a valid GeoJSON object.');
   }
 
-  featureCollection.add(createFeature(id, featureType, geometry, geojson['properties']));
+  featureCollection
+      .add(createFeature(id, featureType, geometry, geojson['properties']));
 
   return;
 }
@@ -121,7 +116,7 @@ void convertLines(rings, out, tolerance, isPolygon) {
 }
 
 void convertLine(ring, List out, tolerance, bool isPolygon) {
-  var x0, y0;
+  double x0 = 0, y0 = 0;
   var size = 0.0;
 
   for (var j = 0; j < ring.length; j++) {
@@ -134,7 +129,8 @@ void convertLine(ring, List out, tolerance, bool isPolygon) {
       if (isPolygon) {
         size += (x0 * y - x * y0) / 2; // area
       } else {
-        size += math.sqrt(math.pow(x - x0, 2.0) + math.pow(y - y0, 2.0)); // length
+        size +=
+            math.sqrt(math.pow(x - x0, 2.0) + math.pow(y - y0, 2.0)); // length
       }
     }
     x0 = x;
@@ -150,5 +146,4 @@ void convertLine(ring, List out, tolerance, bool isPolygon) {
   out.size = size.abs();
   out.start = 0;
   out.end = out.size;
-
 }

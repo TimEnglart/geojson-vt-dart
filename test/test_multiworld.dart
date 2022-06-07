@@ -1,8 +1,4 @@
-import 'dart:math' as math;
 import 'package:test/test.dart';
-import 'package:collection/collection.dart';
-import '../lib/clip.dart';
-import '../lib/classes.dart';
 import '../lib/index.dart';
 
 

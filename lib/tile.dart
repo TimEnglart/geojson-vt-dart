@@ -10,8 +10,9 @@ SimpTile createTile(List features, z, tx, ty, GeoJSONVTOptions options) {
 
   int len = features.length;
 
-  for(var feature in features)
+  for(var feature in features) {
     addFeature(tile, feature, tolerance, options);
+  }
 
   return tile;
 }
@@ -49,7 +50,7 @@ addFeature(SimpTile tile, feature, tolerance, options) {
     }
   }
 
-  if (simplified.length > 0) {
+  if (simplified.isNotEmpty) {
     var tags;
     if( feature.tags != null ) tags = feature.tags;
 
@@ -77,10 +78,10 @@ addFeature(SimpTile tile, feature, tolerance, options) {
 void addLine(result, List geom, tile, tolerance, isPolygon, isOuter) {
   final sqTolerance = tolerance * tolerance;
 
-  List g = geom as List;
+  List g = geom;
 
   if (tolerance > 0 && (g.size < (isPolygon ? sqTolerance : tolerance))) {
-    tile.numPoints += (g.length / 3).toInt();
+    tile.numPoints += g.length ~/ 3;
     return;
   }
 

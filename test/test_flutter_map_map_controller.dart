@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:ui' as dartui;
 
 
@@ -220,8 +219,9 @@ class TileState {
     //print("3");
 
     var levelZoom = _levels[zoom];
-    if(levelZoom != null)
+    if(levelZoom != null) {
       _level = levelZoom;
+    }
 
   }
 
@@ -278,7 +278,7 @@ class TileState {
 class VectorPainter extends CustomPainter with ChangeNotifier {
 
   //ValueNotifier<int> notifier;
-  final Stream<Null>? stream;
+  final Stream<void>? stream;
   GeoJSONVT? index;
   MapState mapState;
   //int notifier;
@@ -299,7 +299,7 @@ class VectorPainter extends CustomPainter with ChangeNotifier {
   @override
   void paint(Canvas canvas, Size size) {
 
-    Bounds _tileRange;
+    Bounds tileRange;
     final List featuresInView = [];
 
     var origin = mapState.getPixelOrigin();
@@ -313,13 +313,13 @@ class VectorPainter extends CustomPainter with ChangeNotifier {
     //print("Zoom: ${mapState.zoom} Index: ${index} :FIN");
     //var bounds = getTiledPixelBounds(mapState);
     //_tileRange = pxBoundsToTileRange(bounds,256);
-    _tileRange = tileState!.getTileRange();
+    tileRange = tileState!.getTileRange();
     //print("Tilerange $_tileRange");
 
     //print("START!!!!!!!!! $_tileRange");
     //print("VEC BOUNDS ${tileState!.getBounds()}");
-    for (var j = _tileRange.min.y; j <= _tileRange.max.y; j++) {
-      for (var i = _tileRange.min.x; i <= _tileRange.max.x; i++) {
+    for (var j = tileRange.min.y; j <= tileRange.max.y; j++) {
+      for (var i = tileRange.min.x; i <= tileRange.max.x; i++) {
         //print('tile Z${tileState!.getTileZoom()} $i $j  ');
         var tile = index?.getTile(tileState!.getTileZoom().toInt(), i, j);
         //print("${tile.features}")
@@ -334,11 +334,9 @@ class VectorPainter extends CustomPainter with ChangeNotifier {
         //print("POS IS $pos, zoom is ${mapState.zoom}");
 
         Matrix4 matrix = Matrix4.identity();
-        if(pos != null) {
-          matrix
-            ..translate(pos.point.x.toDouble(), pos.point.y.toDouble())
-            ..scale(pos.scale);
-        }
+        matrix
+          ..translate(pos.point.x.toDouble(), pos.point.y.toDouble())
+          ..scale(pos.scale);
         canvas.save();
         canvas.transform(matrix.storage);
         var myRect = Offset(0,0) & Size(256.0,256.0);

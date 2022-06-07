@@ -17,16 +17,17 @@ void main() {
 
   test('Clip polylines', () {
     final clipped = clip([
-      {'geometry': geom1, 'type': 'LineString', 'tags': 1, 'minX': 0, 'minY': 0, 'maxX': 50, 'maxY': 60},
-      {'geometry': geom2, 'type': 'LineString', 'tags': 2, 'minX': 0, 'minY': 0, 'maxX': 50, 'maxY': 10}
-    ], 1, 10, 40, 0, -double.infinity, double.infinity, {});
+      Feature(geometry: geom1, type: FeatureType.LineString, tags: {}, minX: 0, minY: 0, maxX: 50, maxY: 60),
+      Feature(geometry: geom2, type: FeatureType.LineString, tags: {}, minX: 0, minY: 0, maxX: 50, maxY: 10),
+    ], 1, 10, 40, 0, -double.infinity, double.infinity, GeoJSONVTOptions());
 
     final expected = [
-      {'id': null, 'type': 'MultiLineString', 'geometry': [
+      Feature(id: null, type: FeatureType.MultiLineString, geometry: [
         [10.0,0.0,1,40.0,0.0,1],
         [40.0,10.0,1,20.0,10.0,0,20.0,20.0,0,30.0,20.0,0,30.0,30.0,0,40.0,30.0,1],
         [40.0,40.0,1,25.0,40.0,0,25.0,50.0,0,10.0,50.0,1],
-        [10.0,60.0,1,25.0,60.0,0]], 'tags': 1, 'minX': 10, 'minY': 0, 'maxX': 40, 'maxY': 60},
+        [10.0,60.0,1,25.0,60.0,0]]),
+      {'id': null, 'type': 'MultiLineString', 'geometry': , 'tags': 1, 'minX': 10, 'minY': 0, 'maxX': 40, 'maxY': 60},
       {'id': null, 'type': 'MultiLineString', 'geometry': [
         [10.0,0.0,1,40.0,0.0,1],
         [40.0,10.0,1,10.0,10.0,1]], 'tags': 2, 'minX': 10, 'minY': 0, 'maxX': 40, 'maxY': 10}

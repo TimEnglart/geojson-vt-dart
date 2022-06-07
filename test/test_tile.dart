@@ -1,9 +1,5 @@
 import 'dart:io';
 import 'dart:convert';
-import 'package:collection/collection.dart';
-import 'package:test/test.dart';
-import '../lib/clip.dart';
-import '../lib/classes.dart';
 import '../lib/index.dart';
 
 
@@ -73,7 +69,7 @@ void main() async {
 
    */
 
-  var us_states_z7_37_48 = await File('data/us-states-z7-37-48.json').readAsString();
+  var usStatesZ73748 = await File('data/us-states-z7-37-48.json').readAsString();
 
 
 

@@ -2,35 +2,45 @@ import 'clip.dart';
 import 'classes.dart';
 import 'feature.dart';
 
-List wrap(features, options) {
-  final buffer = options.buffer / options.extent;
-  List merged = features;
-  final List left  = clip(features, 1, -1 - buffer, buffer,     0, -1, 2, options); // left world copy
-  final List right = clip(features, 1,  1 - buffer, 2 + buffer, 0, -1, 2, options); // right world copy
+List<Feature> wrap(List<Feature> features, GeoJSONVTOptions options) {
+  final double buffer = options.buffer / options.extent;
+  var merged = features;
+  final left = clip(
+      features, 1, -1 - buffer, buffer, 0, -1, 2, options); // left world copy
+  final right = clip(features, 1, 1 - buffer, 2 + buffer, 0, -1, 2,
+      options); // right world copy
 
   if (left.isNotEmpty || right.isNotEmpty) {
-    merged = clip(features, 1, -buffer, 1 + buffer, 0, -1, 2, options); // center world copy
+    merged = clip(features, 1, -buffer, 1 + buffer, 0, -1, 2,
+        options); // center world copy
 
-    if (left.isNotEmpty) merged = shiftFeatureCoords(left, 1) + merged; // merge left into center
-    if (right.isNotEmpty) merged = merged + shiftFeatureCoords(right, -1); // merge right into center
+    if (left.isNotEmpty) {
+      // merge left into center
+      merged = shiftFeatureCoords(left, 1) + merged;
+    }
+    if (right.isNotEmpty) {
+      // merge right into center
+      merged = merged + shiftFeatureCoords(right, -1);
+    }
   }
 
   return merged;
 }
 
-List shiftFeatureCoords(features, offset) {
-  final newFeatures = [];
+List<Feature> shiftFeatureCoords(List<Feature> features, double offset) {
+  final newFeatures = <Feature>[];
 
-  for (int i = 0; i < features.length; i++) {
-    final feature = features[i];
+  for (var feature in features) {
     final type = feature.type;
 
     var newGeometry = [];
 
-    if (type == FeatureType.Point || type == FeatureType.MultiPoint || type == FeatureType.LineString) {
-      newGeometry = shiftCoords(feature.geometry, offset);
-
-    } else if (type == FeatureType.MultiLineString || type == FeatureType.Polygon) {
+    if (type == FeatureType.Point ||
+        type == FeatureType.MultiPoint ||
+        type == FeatureType.LineString) {
+      newGeometry = shiftCoords(feature.geometry as List<double>, offset);
+    } else if (type == FeatureType.MultiLineString ||
+        type == FeatureType.Polygon) {
       newGeometry = [];
       for (var line in feature.geometry) {
         newGeometry.add(shiftCoords(line, offset));
@@ -45,20 +55,18 @@ List shiftFeatureCoords(features, offset) {
         newGeometry.add(newPolygon);
       }
     }
-      newFeatures.add(createFeature(feature.id, type, newGeometry, feature.tags));
+    newFeatures.add(createFeature(feature.id, type, newGeometry, feature.tags));
   }
 
   return newFeatures;
 }
 
-List shiftCoords(List points, offset) {
-  List<num> newPoints = [];
+List<double> shiftCoords(List<double> points, double offset) {
+  List<double> newPoints = [];
   newPoints.size = points.size;
 
-  if (points.start != null) {
-    newPoints.start = points.start;
-    newPoints.end = points.end;
-  }
+  newPoints.start = points.start;
+  newPoints.end = points.end;
 
   for (int i = 0; i < points.length; i += 3) {
     newPoints.addAll([points[i] + offset, points[i + 1], points[i + 2]]);

@@ -1,7 +1,6 @@
 import 'package:test/test.dart';
 import 'simplify.dart';
 import 'classes.dart';
-import 'dart:math' as math;
 
 void main() {
   const points = [

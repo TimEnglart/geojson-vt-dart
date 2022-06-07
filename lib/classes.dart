@@ -1,18 +1,16 @@
 extension JSList<T> on List<T> {
-  static final _startValues = Expando<num>();
-  static final _sizeValues = Expando<num>();
-  static final _endValues = Expando<num>();
+  static final _startValues = Expando<double>();
+  static final _sizeValues = Expando<double>();
+  static final _endValues = Expando<double>();
 
+  double get start => _startValues[this] ?? 0;
+  set start(double value) => _startValues[this] = value;
 
-  num get start => _startValues[this] ?? 0;
-  set start(num x) => _startValues[this] = x;
+  double get size => _sizeValues[this] ?? 0;
+  set size(double value) => _sizeValues[this] = value;
 
-  num get size => _sizeValues[this] ?? 0;
-  set size(num x) => _sizeValues[this] = x;
-
-  num get end => _endValues[this] ?? 0;
-  set end(num x) => _endValues[this] = x;
-
+  double get end => _endValues[this] ?? 0;
+  set end(double value) => _endValues[this] = value;
 }
 
 enum FeatureType {
@@ -25,15 +23,20 @@ enum FeatureType {
   Polygon,
   MultiPolygon,
   GeometryCollection, // not really a feature type, but helps here...
+  None, // Also not a feature type, but allows us to identify invalid feature types
 }
 
 class TileFeature {
-  List geometry;
+  List<dynamic> geometry;
   int type;
-  Map tags;
+  Map<String, dynamic> tags;
   String? id;
 
-  TileFeature({this.geometry = const [], required this.type, this.tags = const {}, this.id});
+  TileFeature(
+      {this.geometry = const [],
+      required this.type,
+      this.tags = const {},
+      this.id});
 
   @override
   String toString() {
@@ -42,46 +45,40 @@ class TileFeature {
 }
 
 class Feature {
-  List geometry;
+  List<dynamic> geometry;
   String? id;
   FeatureType type;
-  Map? tags;
+  Map<String, dynamic>? tags;
   double minX;
   double maxX;
   double minY;
   double maxY;
 
-  // Prob a better way of doing this...
   static const Map typeLookup = {
-    "Point": FeatureType.Point,
     "point": FeatureType.Point,
-    "MultiPoint": FeatureType.MultiPoint,
     "multipoint": FeatureType.MultiPoint,
-    "LineString": FeatureType.LineString,
     "linestring": FeatureType.LineString,
-    "MultiLineString" : FeatureType.MultiLineString,
-    "multilinestring" : FeatureType.MultiLineString,
-    "Polygon": FeatureType.Polygon,
+    "multilinestring": FeatureType.MultiLineString,
     "polygon": FeatureType.Polygon,
-    "MultiPolygon": FeatureType.MultiPolygon,
     "multipolygon": FeatureType.MultiPolygon,
-    "Feature": FeatureType.Feature,
     "feature": FeatureType.Feature,
-    "FeatureCollection": FeatureType.FeatureCollection,
     "featurecollection": FeatureType.FeatureCollection,
-    "GeometryCollection": FeatureType.GeometryCollection, // bit naught, not really a feature type..
-    "geometrycollection": FeatureType.GeometryCollection,
+    "geometrycollection": FeatureType
+        .GeometryCollection, // bit naught, not really a feature type..
   };
 
-  Feature({ this.geometry = const [], this.id, this.type = FeatureType.Feature, this.tags,
-    this.minX = double.infinity, this.maxX = -double.infinity, this.minY = double.infinity, this.maxY = -double.infinity});
+  Feature(
+      {this.geometry = const [],
+      this.id,
+      this.type = FeatureType.Feature,
+      this.tags,
+      this.minX = double.infinity,
+      this.maxX = -double.infinity,
+      this.minY = double.infinity,
+      this.maxY = -double.infinity});
 
   static FeatureType stringToFeatureType(String type) {
-    FeatureType fullType = typeLookup[type];
-    if(fullType == null) {
-      fullType = typeLookup[type.toLowerCase()];
-    }
-    return fullType;
+    return typeLookup[type.toLowerCase()] ?? FeatureType.None;
   }
 
   @override
@@ -91,23 +88,24 @@ class Feature {
 }
 
 class SimpTile {
-  List features = [];
+  List<TileFeature> features = [];
   int numPoints = 0;
   int numSimplified = 0;
   int numFeatures = -1; // = features.length;
-  var source = null;
-  num x = 0;
-  num y = 0;
-  num z;
+  List<Feature>? source;
+  int x;
+  int y;
+  int z;
   bool transformed = false;
-  num minX = 2;
-  num minY = 1;
-  num maxX = -1;
-  num maxY = 0;
+  double minX = 2;
+  double minY = 1;
+  double maxX = -1;
+  double maxY = 0;
 
-  SimpTile(this.features, this.z, tx, ty) { x = tx; y = ty; }
+  SimpTile(this.features, this.z, [this.x = 0, this.y = 0]);
 
-  @override String toString() {
+  @override
+  String toString() {
     return "SimpTile:    numPoints: $numPoints numSimplified: $numSimplified numFeatures: $numFeatures source: $source xyz $x,$y,$z transformed: $transformed minX: $minX minY $minY maxX: $maxX maxY: $maxY features: $features";
   }
 }
@@ -121,11 +119,19 @@ class GeoJSONVTOptions {
   int buffer; // tile buffer on each side
   bool lineMetrics; // whether to calculate line metrics
   String? promoteId; // name of a feature property to be promoted to feature.id
-  bool generateId; // whether to generate feature ids. Cannot be used with promoteId
+  bool
+      generateId; // whether to generate feature ids. Cannot be used with promoteId
   int debug; // logging level (0, 1 or 2)
 
-  GeoJSONVTOptions({this.maxZoom = 14, this.indexMaxZoom = 5, this.indexMaxPoints = 100000,
-    this.tolerance = 3, this.extent = 4096, this.buffer = 64, this.lineMetrics = false, this.promoteId = null,
-    this.generateId = false, this.debug = 2
-  });
+  GeoJSONVTOptions(
+      {this.maxZoom = 14,
+      this.indexMaxZoom = 5,
+      this.indexMaxPoints = 100000,
+      this.tolerance = 3,
+      this.extent = 4096,
+      this.buffer = 64,
+      this.lineMetrics = false,
+      this.promoteId,
+      this.generateId = false,
+      this.debug = 2});
 }

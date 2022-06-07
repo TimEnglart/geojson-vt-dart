@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-import 'tile.dart';
 import 'classes.dart';
 
 // Transforms the coordinates of each feature in the given tile from

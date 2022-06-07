@@ -1,10 +1,7 @@
 import 'package:test/test.dart';
-import 'dart:math' as math;
 import 'dart:io';
 import 'dart:convert';
 import '../lib/index.dart';
-import '../lib/simplify.dart';
-import '../lib/classes.dart';
 
 void main() async {
 

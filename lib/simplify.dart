@@ -1,10 +1,8 @@
-import 'classes.dart';
-
-void simplify (coords, int first, int last, sqTolerance) {
+void simplify(List<dynamic> coords, int first, int last, double sqTolerance) {
+  final mid = (last - first) >> 1;
   var maxSqDist = sqTolerance;
-  var mid = (last - first) >> 1;
   var minPosToMid = last - first;
-  var index;
+  int index = 0;
 
   final ax = coords[first];
   final ay = coords[first + 1];
@@ -17,7 +15,6 @@ void simplify (coords, int first, int last, sqTolerance) {
     if (d > maxSqDist) {
       index = i;
       maxSqDist = d;
-
     } else if (d == maxSqDist) {
       // a workaround to ensure we choose a pivot close to the middle of the list,
       // reducing recursion depth, for certain degenerate inputs
@@ -35,22 +32,19 @@ void simplify (coords, int first, int last, sqTolerance) {
     coords[index + 2] = maxSqDist;
     if (last - index > 3) simplify(coords, index, last, sqTolerance);
   }
-
 }
 
-double getSqSegDist(px, py, x, y, bx, by) {
-
+double getSqSegDist(
+    double px, double py, double x, double y, double bx, double by) {
   var dx = bx - x;
   var dy = by - y;
 
   if (dx != 0 || dy != 0) {
-
     final t = ((px - x) * dx + (py - y) * dy) / (dx * dx + dy * dy);
 
     if (t > 1) {
       x = bx;
       y = by;
-
     } else if (t > 0) {
       x += dx * t;
       y += dy * t;

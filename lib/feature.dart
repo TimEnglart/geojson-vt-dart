@@ -1,11 +1,10 @@
-import 'dart:math' as math;
 import 'classes.dart';
 
 Feature createFeature(id, type, List geometry, tags) {
 
   Feature feature = Feature(
     geometry: geometry,
-    id: id == null ? null : id,
+    id: id,
     type: type,
     tags: tags,
   );
